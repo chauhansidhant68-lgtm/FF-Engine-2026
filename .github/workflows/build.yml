@@ -1,4 +1,4 @@
-name: iOS 2026 Clean Engine Compiler
+name: iOS Pure Swift Compiler
 on: [push, workflow_dispatch]
 jobs:
   build:
@@ -6,10 +6,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Install Pro Compiler Tools
+      - name: Install Build Tools
         run: brew install xcodegen
           
-      - name: Generate Xcode Project structure
+      - name: Forge Swift Project
         run: |
           cat << 'EOF' > project.yml
           name: FF_Engine
@@ -20,24 +20,22 @@ jobs:
               type: application
               platform: iOS
               deploymentTarget: "15.0"
-              sources:
-                - path: .
-                  excludes: [".github"]
+              sources: [.]
               settings:
                 CODE_SIGNING_ALLOWED: NO
                 CODE_SIGNING_REQUIRED: NO
           EOF
           xcodegen generate
           
-      - name: Compile and Package
+      - name: Compile Mach-O Binary
         run: |
           xcodebuild archive -project FF_Engine.xcodeproj -scheme FF_Engine -configuration Release -archivePath build/App.xcarchive CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
           mkdir -p Payload
           cp -r build/App.xcarchive/Products/Applications/*.app Payload/
-          zip -r FF_Engine_2026_Clean.ipa Payload
+          zip -r FF_Engine_Pure.ipa Payload
           
       - name: Upload Final IPA
         uses: actions/upload-artifact@v4
         with:
-          name: Clean-Engine-IPA
-          path: FF_Engine_2026_Clean.ipa
+          name: FF-Engine-IPA
+          path: FF_Engine_Pure.ipa
